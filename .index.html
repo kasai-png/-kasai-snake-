@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بازی مار کاسای</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #111;
+    }
+    canvas {
+      border: 2px solid #fff;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 600;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+
+    const scale = 20;
+    const rows = canvas.height / scale;
+    const columns = canvas.width / scale;
+
+    let snake;
+    let fruit;
+
+    class Snake {
+      constructor() {
+        this.body = [{ x: 10, y: 10 }];
+        this.xSpeed = 1;
+        this.ySpeed = 0;
+        this.total = 0;
+        this.healthLevel = 1;
+        this.color = "green";
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        for (let segment of this.body) {
+          ctx.fillRect(segment.x * scale, segment.y * scale, scale, scale);
+        }
+      }
+
+      update() {
+        const head = {
+          x: this.body[this.body.length - 1].x + this.xSpeed,
+          y: this.body[this.body.length - 1].y + this.ySpeed
+        };
+        this.body.push(head);
+        if (this.total < this.body.length - 1) {
+          this.body.shift();
+        }
+      }
+
+      changeDirection(dir) {
+        switch (dir) {
+          case "Up":
+            if (this.ySpeed === 0) {
+              this.xSpeed = 0;
+              this.ySpeed = -1;
+            }
+            break;
+          case "Down":
+            if (this.ySpeed === 0) {
+              this.xSpeed = 0;
+              this.ySpeed = 1;
+            }
+            break;
+          case "Left":
+            if (this.xSpeed === 0) {
+              this.xSpeed = -1;
+              this.ySpeed = 0;
+            }
+            break;
+          case "Right":
+            if (this.xSpeed === 0) {
+              this.xSpeed = 1;
+              this.ySpeed = 0;
+            }
+            break;
+        }
+      }
+
+      eat(fruit) {
+        const head = this.body[this.body.length - 1];
+        if (head.x === fruit.x && head.y === fruit.y) {
+          this.total++;
+          if (this.total % 100 === 0) {
+            this.healthLevel++;
+            this.updateColor();
+          }
+          return true;
+        }
+        return false;
+      }
+
+      updateColor() {
+        if (this.healthLevel < 3) {
+          this.color = "green";
+        } else if (this.healthLevel < 6) {
+          this.color = "blue";
+        } else if (this.healthLevel < 9) {
+          this.color = "red";
+        } else {
+          this.color = "gold"; // اژدهای کاسای
+        }
+      }
+    }
+
+    class Fruit {
+      constructor() {
+        this.pickLocation();
+      }
+
+      pickLocation() {
+        this.x = Math.floor(Math.random() * columns);
+        this.y = Math.floor(Math.random() * rows);
+      }
+
+      draw() {
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(this.x * scale, this.y * scale, scale, scale);
+      }
+    }
+
+    function setup() {
+      snake = new Snake();
+      fruit = new Fruit();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      fruit.draw();
+      snake.update();
+      snake.draw();
+      if (snake.eat(fruit)) {
+        fruit.pickLocation();
+      }
+    }
+
+    window.addEventListener("keydown", (evt) => {
+      const direction = evt.key.replace("Arrow", "");
+      snake.changeDirection(direction);
+    });
+
+    setup();
+    setInterval(draw, 100);
+  </script>
+</body>
+</html>
